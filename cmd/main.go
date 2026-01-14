@@ -14,8 +14,30 @@ import (
 	"github.com/Thorlik/marketplace/internal/repository"
 	"github.com/Thorlik/marketplace/internal/service"
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
+
+	_ "github.com/Thorlik/marketplace/docs"
 )
+
+// @title Marketplace API
+// @version 1.0
+// @description This is a marketplace API server for buying and selling products.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@marketplace.com
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your bearer token in the format: Bearer <token>
 
 func main() {
 	logger, _ := zap.NewProduction()
@@ -68,6 +90,13 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	}).Methods(http.MethodGet)
+
+	r.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	))
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 

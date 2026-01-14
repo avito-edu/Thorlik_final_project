@@ -25,6 +25,19 @@ func NewOrderHandler(service service.OrderService, logger *zap.Logger) *OrderHan
 	}
 }
 
+// CreateOrder godoc
+// @Summary Create a new order
+// @Description Create an order with specified items
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateOrderRequest true "Order items"
+// @Success 201 {object} dto.OrderResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /orders [post]
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 	h.logger.Info("Creating order request")
@@ -62,6 +75,17 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusCreated, response, h.logger)
 }
 
+// CreateOrderFromCart godoc
+// @Summary Create order from cart
+// @Description Create an order from all items in user's cart
+// @Tags Orders
+// @Produce json
+// @Security BearerAuth
+// @Success 201 {object} dto.OrderResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /orders/from-cart [post]
 func (h *OrderHandler) CreateOrderFromCart(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 	h.logger.Info("Creating order from cart request")
@@ -85,6 +109,20 @@ func (h *OrderHandler) CreateOrderFromCart(w http.ResponseWriter, r *http.Reques
 	RespondWithJSON(w, http.StatusCreated, response, h.logger)
 }
 
+// GetOrder godoc
+// @Summary Get order by ID
+// @Description Get order details by ID (owner or admin)
+// @Tags Orders
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Order ID"
+// @Success 200 {object} dto.OrderResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /orders/{id} [get]
 func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -113,6 +151,18 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetMyOrders godoc
+// @Summary Get my orders
+// @Description Get list of orders for authenticated user
+// @Tags Orders
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {array} dto.OrderResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /orders [get]
 func (h *OrderHandler) GetMyOrders(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -140,6 +190,19 @@ func (h *OrderHandler) GetMyOrders(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, responses, h.logger)
 }
 
+// GetAllOrders godoc
+// @Summary Get all orders (Admin)
+// @Description Get list of all orders (admin only)
+// @Tags Admin
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {array} dto.OrderResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/orders [get]
 func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
@@ -165,6 +228,22 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, responses, h.logger)
 }
 
+// UpdateOrderStatus godoc
+// @Summary Update order status (Admin)
+// @Description Update order status (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Order ID"
+// @Param request body dto.UpdateOrderStatusRequest true "New status"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/orders/{id}/status [put]
 func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -193,6 +272,21 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Order status updated successfully"}, h.logger)
 }
 
+// ProcessPayment godoc
+// @Summary Process payment
+// @Description Process payment for an order
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.PaymentRequest true "Payment details"
+// @Success 200 {object} dto.PaymentResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /payments [post]
 func (h *OrderHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -226,6 +320,20 @@ func (h *OrderHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// AddToCart godoc
+// @Summary Add item to cart
+// @Description Add a product to user's shopping cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.AddToCartRequest true "Cart item"
+// @Success 200 {object} dto.CartItemResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /cart [post]
 func (h *OrderHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -258,6 +366,16 @@ func (h *OrderHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetCart godoc
+// @Summary Get shopping cart
+// @Description Get user's shopping cart with items
+// @Tags Cart
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.CartResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /cart [get]
 func (h *OrderHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -300,6 +418,20 @@ func (h *OrderHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// UpdateCartItem godoc
+// @Summary Update cart item quantity
+// @Description Update quantity of an item in cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Cart item ID"
+// @Param request body dto.UpdateCartItemRequest true "New quantity"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /cart/{id} [put]
 func (h *OrderHandler) UpdateCartItem(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -324,6 +456,18 @@ func (h *OrderHandler) UpdateCartItem(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Cart item updated successfully"}, h.logger)
 }
 
+// RemoveFromCart godoc
+// @Summary Remove item from cart
+// @Description Remove an item from shopping cart
+// @Tags Cart
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Cart item ID"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /cart/{id} [delete]
 func (h *OrderHandler) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -342,6 +486,16 @@ func (h *OrderHandler) RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Item removed from cart"}, h.logger)
 }
 
+// ClearCart godoc
+// @Summary Clear shopping cart
+// @Description Remove all items from shopping cart
+// @Tags Cart
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /cart/clear [delete]
 func (h *OrderHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 

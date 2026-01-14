@@ -25,6 +25,18 @@ func NewUserHandler(service service.UserService, logger *zap.Logger) *UserHandle
 	}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "Registration data"
+// @Success 201 {object} dto.UserResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("Handling register request")
 
@@ -68,6 +80,18 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusCreated, response, h.logger)
 }
 
+// Login godoc
+// @Summary User login
+// @Description Authenticate user and return JWT token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login credentials"
+// @Success 200 {object} dto.LoginResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /auth/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("Handling login request")
 
@@ -102,6 +126,17 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetProfile godoc
+// @Summary Get current user profile
+// @Description Get authenticated user's profile information
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.UserResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me [get]
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -126,6 +161,20 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// UpdateProfile godoc
+// @Summary Update current user profile
+// @Description Update authenticated user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.UpdateUserRequest true "Profile update data"
+// @Success 200 {object} dto.UserResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me [put]
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -156,6 +205,19 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// ChangePassword godoc
+// @Summary Change user password
+// @Description Change authenticated user's password
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.ChangePasswordRequest true "Password change data"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/me/password [put]
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -182,6 +244,20 @@ func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Password changed successfully"}, h.logger)
 }
 
+// GetUser godoc
+// @Summary Get user by ID (Admin)
+// @Description Get user information by ID (admin only)
+// @Tags Admin
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} dto.UserResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/{id} [get]
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -211,6 +287,19 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetAllUsers godoc
+// @Summary Get all users (Admin)
+// @Description Get list of all users (admin only)
+// @Tags Admin
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {array} dto.UserResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users [get]
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
@@ -242,6 +331,22 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, responses, h.logger)
 }
 
+// UpdateUserRole godoc
+// @Summary Update user role (Admin)
+// @Description Update user's role (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param request body dto.UpdateUserRoleRequest true "New role"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/{id}/role [put]
 func (h *UserHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -274,6 +379,20 @@ func (h *UserHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Role updated successfully"}, h.logger)
 }
 
+// DeleteUser godoc
+// @Summary Delete user (Admin)
+// @Description Delete a user by ID (admin only)
+// @Tags Admin
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)

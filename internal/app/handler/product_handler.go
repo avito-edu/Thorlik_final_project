@@ -25,6 +25,19 @@ func NewProductHandler(service service.ProductService, logger *zap.Logger) *Prod
 	}
 }
 
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product listing (requires authentication)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.CreateProductRequest true "Product data"
+// @Success 201 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products [post]
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 	h.logger.Info("Handling create product request")
@@ -69,6 +82,17 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusCreated, response, h.logger)
 }
 
+// GetProduct godoc
+// @Summary Get product by ID
+// @Description Get product details by ID
+// @Tags Products
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products/{id} [get]
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -102,6 +126,23 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetAllProducts godoc
+// @Summary Get all products
+// @Description Get list of products with filtering and pagination
+// @Tags Products
+// @Produce json
+// @Param category query string false "Filter by category"
+// @Param min_price query number false "Minimum price"
+// @Param max_price query number false "Maximum price"
+// @Param seller_id query int false "Filter by seller ID"
+// @Param status query string false "Filter by status" default(approved)
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Param sort_by query string false "Sort field" Enums(price, created_at)
+// @Param sort_order query string false "Sort order" Enums(asc, desc)
+// @Success 200 {object} dto.ProductListResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products [get]
 func (h *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -158,6 +199,18 @@ func (h *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request) 
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// GetMyProducts godoc
+// @Summary Get my products
+// @Description Get products created by authenticated user
+// @Tags Products
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {array} dto.ProductResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products/my [get]
 func (h *ProductHandler) GetMyProducts(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -195,6 +248,22 @@ func (h *ProductHandler) GetMyProducts(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, responses, h.logger)
 }
 
+// UpdateProduct godoc
+// @Summary Update a product
+// @Description Update product details (owner or admin only)
+// @Tags Products
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Product ID"
+// @Param request body dto.UpdateProductRequest true "Updated product data"
+// @Success 200 {object} dto.ProductResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products/{id} [put]
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -253,6 +322,20 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, response, h.logger)
 }
 
+// DeleteProduct godoc
+// @Summary Delete a product
+// @Description Delete a product (owner or admin only)
+// @Tags Products
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Product ID"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /products/{id} [delete]
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(*service.Claims)
 
@@ -279,6 +362,22 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Product deleted successfully"}, h.logger)
 }
 
+// ModerateProduct godoc
+// @Summary Moderate a product (Moderator)
+// @Description Approve or reject a product (moderator only)
+// @Tags Moderation
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Product ID"
+// @Param request body dto.ModerateProductRequest true "Moderation decision"
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /moderate/products/{id} [post]
 func (h *ProductHandler) ModerateProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
@@ -311,6 +410,19 @@ func (h *ProductHandler) ModerateProduct(w http.ResponseWriter, r *http.Request)
 	RespondWithJSON(w, http.StatusOK, dto.SuccessResponse{Message: "Product status updated successfully"}, h.logger)
 }
 
+// GetPendingProducts godoc
+// @Summary Get pending products (Moderator)
+// @Description Get list of products pending moderation (moderator only)
+// @Tags Moderation
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param page_size query int false "Page size" default(20)
+// @Success 200 {object} dto.ProductListResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /moderate/products/pending [get]
 func (h *ProductHandler) GetPendingProducts(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
