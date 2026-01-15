@@ -89,5 +89,5 @@ CREATE TRIGGER update_cart_items_updated_at BEFORE UPDATE ON cart_items
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 INSERT INTO users (email, password_hash, first_name, last_name, role) 
-VALUES ('admin@marketplace.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/nfsJ/N5Oc7R3GFqHYJ2TC', 'Ivan', 'Khorolsky', 'admin')
+VALUES ('admin@marketplace.com', '$2a$10$iAo01IVwH3MnsaSHBguNuuzptxQQAk6EGnvyKz2hxVIwL.Jp2FwYm', 'Ivan', 'Khorolsky', 'admin')
 ON CONFLICT (email) DO NOTHING;

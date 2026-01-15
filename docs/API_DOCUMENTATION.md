@@ -21,6 +21,29 @@ docker-compose logs -f app
 
 Приложение будет доступно по адресу: http://localhost:8080
 
+```bash
+#Примеры команд для вывода таблиц
+docker exec marketplace_postgres psql -U user123 -d marketplace_db -c "SELECT id, email, first_name, last_name, role, created_at FROM users;"
+
+docker exec marketplace_postgres psql -U user123 -d marketplace_db -c "SELECT id, user_id, total_amount, status, payment_status FROM orders;"
+
+docker exec marketplace_postgres psql -U user123 -d marketplace_db -c "SELECT id, seller_id, title, price, quantity, status, category FROM products;"
+
+#Команда для обновления статуса товаров
+docker exec marketplace_postgres psql -U user123 -d marketplace_db -c "UPDATE products SET status = 'approved';"   
+
+#Команда для обновления роли пользователя
+docker exec marketplace_postgres psql -U user123 -d marketplace_db -c "UPDATE users SET role = 'moderator' WHERE email = 'moderator@example.com';"   
+```
+
+Также обновить роль пользователя можно залогинившись по эндпоинту /auth/login в создающегося по умолчания админа, а потом по эндроинту PUT users/{id}/role менять роль, но нужно указывать вручную хедеры, по типу 
+
+```bash
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer <токен после авторизации>
+
+```
 
 ## Конфигурация
 
@@ -349,8 +372,8 @@ POST /products
 
 | Метод | Endpoint | Описание | Авторизация |
 |-------|----------|----------|------|
-| GET | `/moderation/products/pending` | Товары на модерации | Нужна (админ или модератор) |
-| PUT | `/moderation/products/{id}` | Одобрить/отклонить товар | Нужна (админ или модератор) |
+| GET | `/moderate/products/pending` | Товары на модерации | Нужна (админ или модератор) |
+| PUT | `/moderate/products/{id}` | Одобрить/отклонить товар | Нужна (админ или модератор) |
 
 PUT /moderation/products/{id}
 
@@ -432,7 +455,7 @@ POST /cart
 |-------|----------|----------|------|
 | POST | `/orders` | Создать заказ | Нужна |
 | POST | `/orders/from-cart` | Заказ из корзины | Нужна |
-| GET | `/orders/my` | Мои заказы | Нужна |
+| GET | `/orders` | Мои заказы | Нужна |
 | GET | `/orders/{id}` | Получить заказ | Нужна |
 
 POST /orders/from-cart
@@ -513,14 +536,14 @@ POST /payments
 
 | Метод | Endpoint | Описание | Авторизация |
 |-------|----------|----------|------|
-| GET | `/admin/users` | Список пользователей | Нужна (админ) |
-| GET | `/admin/users/{id}` | Получить пользователя | Нужна (админ) |
-| PUT | `/admin/users/{id}/role` | Изменить роль | Нужна (админ) |
-| DELETE | `/admin/users/{id}` | Удалить пользователя | Нужна (админ) |
+| GET | `users` | Список пользователей | Нужна (админ) |
+| GET | `users/{id}` | Получить пользователя | Нужна (админ) |
+| PUT | `users/{id}/role` | Изменить роль | Нужна (админ) |
+| DELETE | `users/{id}` | Удалить пользователя | Нужна (админ) |
 | GET | `/admin/orders` | Все заказы | Нужна (админ) |
 | PUT | `/admin/orders/{id}/status` | Изменить статус | Нужна (админ) |
 
-PUT /admin/users/{id}/role
+PUT users/{id}/role
 
 **Request:**
 ```json
